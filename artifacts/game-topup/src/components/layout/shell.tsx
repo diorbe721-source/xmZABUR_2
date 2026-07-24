@@ -1,0 +1,18 @@
+import { ReactNode } from "react";
+import { Navbar } from "./navbar";
+import { Footer } from "./footer";
+
+export function Shell({ children }: { children: ReactNode }) {
+  return (
+    <div className="min-h-[100dvh] flex flex-col relative overflow-hidden">
+      {/* Background ambient light */}
+      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[400px] bg-primary/20 blur-[120px] rounded-full pointer-events-none -z-10 mix-blend-screen" />
+      
+      <Navbar />
+      <main className="flex-1 flex flex-col z-0">
+        {children}
+      </main>
+      <Footer />
+    </div>
+  );
+}

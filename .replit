@@ -18,3 +18,11 @@ expertMode = true
 [postMerge]
 path = "scripts/post-merge.sh"
 timeoutMs = 20000
+
+[userenv]
+
+[userenv.shared]
+WHOP_COMPANY_ID = "WHOP_COMPANY_ID"
+
+[nix]
+channel = "stable-25_05"
