@@ -3,13 +3,22 @@ info:
   # Do not change the title, if the title changes, the import paths will be broken
   title: Api
   version: 0.1.0
-  description: API specification
+  description: Game Top-Up Store API
 servers:
   - url: /api
     description: Base API path
 tags:
   - name: health
     description: Health operations
+  - name: games
+    description: Game catalog
+  - name: packages
+    description: Top-up packages
+  - name: orders
+    description: Orders and checkout
+  - name: stats
+    description: Site statistics
+
 paths:
   /healthz:
     get:
@@ -24,6 +33,122 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
+
+  /games:
+    get:
+      operationId: listGames
+      tags: [games]
+      summary: List all supported games
+      responses:
+        "200":
+          description: List of games
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Game"
+
+  /games/{gameId}/packages:
+    get:
+      operationId: listPackages
+      tags: [packages]
+      summary: List top-up packages for a game
+      parameters:
+        - name: gameId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: List of packages
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/TopupPackage"
+        "404":
+          description: Game not found
+
+  /checkout:
+    post:
+      operationId: createCheckout
+      tags: [orders]
+      summary: Create a Whop checkout for a top-up package
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CheckoutInput"
+      responses:
+        "201":
+          description: Checkout created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CheckoutResult"
+        "400":
+          description: Validation error
+        "404":
+          description: Package not found
+
+  /orders:
+    get:
+      operationId: listOrders
+      tags: [orders]
+      summary: List recent orders
+      parameters:
+        - name: limit
+          in: query
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: List of orders
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Order"
+
+  /orders/{orderId}:
+    get:
+      operationId: getOrder
+      tags: [orders]
+      summary: Get order by ID
+      parameters:
+        - name: orderId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Order details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Order"
+        "404":
+          description: Order not found
+
+  /stats:
+    get:
+      operationId: getSiteStats
+      tags: [stats]
+      summary: Get site-wide statistics
+      responses:
+        "200":
+          description: Site stats
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SiteStats"
+
 components:
   schemas:
     HealthStatus:
@@ -34,3 +159,112 @@ components:
       required:
         - status
 
+    Game:
+      type: object
+      required: [id, name, slug, description, imageUrl, currency, isActive]
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        slug:
+          type: string
+        description:
+          type: string
+        imageUrl:
+          type: string
+        currency:
+          type: string
+          description: "In-game currency name e.g. UC, Diamonds"
+        isActive:
+          type: boolean
+
+    TopupPackage:
+      type: object
+      required: [id, gameId, name, amount, price, currency, isPopular]
+      properties:
+        id:
+          type: integer
+        gameId:
+          type: integer
+        name:
+          type: string
+        amount:
+          type: integer
+          description: Amount of in-game currency
+        bonus:
+          type: ["integer", "null"]
+          description: Bonus currency amount
+        price:
+          type: number
+          description: Price in USD
+        currency:
+          type: string
+          description: In-game currency name
+        isPopular:
+          type: boolean
+
+    CheckoutInput:
+      type: object
+      required: [packageId, playerId]
+      properties:
+        packageId:
+          type: integer
+        playerId:
+          type: string
+          description: Player's in-game ID
+        serverOrZone:
+          type: ["string", "null"]
+          description: Server or zone (if required by the game)
+
+    CheckoutResult:
+      type: object
+      required: [checkoutUrl, orderId]
+      properties:
+        checkoutUrl:
+          type: string
+        orderId:
+          type: integer
+
+    Order:
+      type: object
+      required: [id, gameId, packageId, playerId, status, createdAt]
+      properties:
+        id:
+          type: integer
+        gameId:
+          type: integer
+        packageId:
+          type: integer
+        playerId:
+          type: string
+        serverOrZone:
+          type: ["string", "null"]
+        status:
+          type: string
+          enum: [pending, paid, processing, completed, failed]
+        checkoutUrl:
+          type: ["string", "null"]
+        whopCheckoutId:
+          type: ["string", "null"]
+        gameName:
+          type: ["string", "null"]
+        packageName:
+          type: ["string", "null"]
+        packageAmount:
+          type: ["integer", "null"]
+        packagePrice:
+          type: ["number", "null"]
+        createdAt:
+          type: string
+
+    SiteStats:
+      type: object
+      required: [totalOrders, activeGames, totalPackages]
+      properties:
+        totalOrders:
+          type: integer
+        activeGames:
+          type: integer
+        totalPackages:
+          type: integer

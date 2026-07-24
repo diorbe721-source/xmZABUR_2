@@ -1,0 +1,27 @@
+kind = "web"
+previewPath = "/"
+title = "Game Top-Up Store"
+version = "1.0.0"
+id = "artifacts/game-topup"
+router = "path"
+
+[[services]]
+name = "web"
+paths = [ "/" ]
+localPort = 18498
+
+[services.development]
+run = "pnpm --filter @workspace/game-topup run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/game-topup", "run", "build" ]
+serve = "static"
+publicDir = "artifacts/game-topup/dist/public"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "18498"
+BASE_PATH = "/"
