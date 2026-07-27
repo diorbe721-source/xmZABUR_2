@@ -7,17 +7,7 @@ interface GameCardProps {
 }
 
 export function GameCard({ game }: GameCardProps) {
-  // If the game doesn't have an explicit imageUrl that works, we can map some defaults based on slug.
-  // The generated images are in attached_assets/generated_images/
-  const imageMap: Record<string, string> = {
-    'pubg-mobile': '/attached_assets/generated_images/pubg.jpg',
-    'mobile-legends': '/attached_assets/generated_images/mobile-legends.jpg',
-    'free-fire': '/attached_assets/generated_images/free-fire.jpg',
-    'genshin-impact': '/attached_assets/generated_images/genshin.jpg',
-    'cod-mobile': '/attached_assets/generated_images/codm.jpg'
-  };
-
-  const imgSrc = imageMap[game.slug] || game.imageUrl || 'https://images.unsplash.com/photo-1542751371-adc38448a05e?auto=format&fit=crop&q=80&w=800';
+  const imgSrc = game.imageUrl || 'https://images.unsplash.com/photo-1542751371-adc38448a05e?auto=format&fit=crop&q=80&w=800';
 
   return (
     <Link href={`/games/${game.id}`}>
