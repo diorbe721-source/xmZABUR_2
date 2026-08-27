@@ -5,5 +5,5 @@ generated = []
 id = "uYneFuKf4lwQ_L-b55ysK"
 uri = "file://gamepay-source-code.zip"
 type = "unspecified"
-title = "GamePay source code"
-description = "GamePay saytining frontend, API server, database schema, OpenAPI spec, rasmlar va Telegram bot kodi. Maxfiy tokenlar va node_modules kiritilmagan."
+title = "GamePay source code — latest"
+description = "Eng so'nggi GamePay kodi: frontend sayt, API server, admin panel, so'm narxlari, database schema, rasmlar va Telegram bot. Maxfiy tokenlar va node_modules kiritilmagan."
