@@ -1,7 +1,8 @@
 import { useRoute, Link } from "wouter";
 import { useGetOrder } from "@workspace/api-client-react";
 import { CheckCircle2, Clock, XCircle, ChevronRight, Zap, RefreshCw, AlertTriangle } from "lucide-react";
-import type { OrderStatus } from "@workspace/api-client-react";
+import { OrderStatus } from "@workspace/api-client-react";
+import { formatSomFromUsd } from "@/lib/currency";
 
 export default function OrderStatusPage() {
   const [, params] = useRoute("/orders/:orderId");
@@ -10,6 +11,7 @@ export default function OrderStatusPage() {
   // Poll every 3 seconds while not completed or failed
   const { data: order, isLoading, error } = useGetOrder(orderId, {
     query: {
+      queryKey: [`/api/orders/${orderId}`],
       enabled: !!orderId,
       refetchInterval: (query) => {
         const status = query.state.data?.status;
@@ -127,7 +129,7 @@ export default function OrderStatusPage() {
             <div className="flex justify-between items-center pt-2">
               <span className="text-muted-foreground">Amount Paid</span>
               <span className="text-xl font-mono font-bold text-primary">
-                ${order.packagePrice?.toFixed(2) || "---"}
+                 {formatSomFromUsd(order.packagePrice)}
               </span>
             </div>
           </div>

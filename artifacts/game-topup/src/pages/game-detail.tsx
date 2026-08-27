@@ -3,6 +3,7 @@ import { useRoute, useLocation } from "wouter";
 import { useListGames, useListPackages, useCreateCheckout } from "@workspace/api-client-react";
 import { AlertTriangle, User, Zap, ChevronLeft, ShieldCheck, CheckCircle2 } from "lucide-react";
 import { Link } from "wouter";
+import { formatSomFromUsd } from "@/lib/currency";
 
 export default function GameDetail() {
   const [, params] = useRoute("/games/:gameId");
@@ -10,7 +11,9 @@ export default function GameDetail() {
   const [, setLocation] = useLocation();
 
   const { data: games, isLoading: loadingGames } = useListGames();
-  const { data: packages, isLoading: loadingPackages, error: packagesError } = useListPackages(gameId, { query: { enabled: !!gameId } });
+  const { data: packages, isLoading: loadingPackages, error: packagesError } = useListPackages(gameId, {
+    query: { queryKey: [`/api/games/${gameId}/packages`], enabled: !!gameId },
+  });
   
   const createCheckout = useCreateCheckout();
   
@@ -53,14 +56,6 @@ export default function GameDetail() {
     });
   };
 
-  const imageMap: Record<string, string> = {
-    'pubg-mobile': '/attached_assets/generated_images/pubg.jpg',
-    'mobile-legends': '/attached_assets/generated_images/mobile-legends.jpg',
-    'free-fire': '/attached_assets/generated_images/free-fire.jpg',
-    'genshin-impact': '/attached_assets/generated_images/genshin.jpg',
-    'cod-mobile': '/attached_assets/generated_images/codm.jpg'
-  };
-
   if (loadingGames) {
     return <div className="container mx-auto p-12 text-center text-muted-foreground animate-pulse">Loading game details...</div>;
   }
@@ -75,7 +70,7 @@ export default function GameDetail() {
     );
   }
 
-  const imgSrc = imageMap[game.slug] || game.imageUrl || 'https://images.unsplash.com/photo-1542751371-adc38448a05e?auto=format&fit=crop&q=80&w=1200';
+  const imgSrc = game.imageUrl || 'https://images.unsplash.com/photo-1542751371-adc38448a05e?auto=format&fit=crop&q=80&w=1200';
   const selectedPackage = packages?.find(p => p.id === selectedPackageId);
 
   return (
@@ -167,7 +162,7 @@ export default function GameDetail() {
                         )}
                         
                         <div className="text-lg font-mono font-medium text-muted-foreground mt-auto pt-2 border-t border-white/10 w-full">
-                          ${pkg.price.toFixed(2)}
+                           {formatSomFromUsd(pkg.price)}
                         </div>
                       </button>
                     );
@@ -252,7 +247,7 @@ export default function GameDetail() {
                 <div className="pt-4 mt-4 border-t border-white/10 flex justify-between items-end">
                   <span className="text-muted-foreground font-medium">Total</span>
                   <span className="text-3xl font-mono font-bold text-white">
-                    ${selectedPackage ? selectedPackage.price.toFixed(2) : "0.00"}
+                     {formatSomFromUsd(selectedPackage?.price)}
                   </span>
                 </div>
               </div>

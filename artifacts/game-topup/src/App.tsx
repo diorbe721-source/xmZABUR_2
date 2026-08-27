@@ -11,6 +11,7 @@ import Games from '@/pages/games';
 import GameDetail from '@/pages/game-detail';
 import OrderStatus from '@/pages/order-status';
 import TrackOrder from '@/pages/track-order';
+import Admin from '@/pages/admin';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -30,6 +31,7 @@ function Router() {
         <Route path="/games/:gameId" component={GameDetail} />
         <Route path="/orders/:orderId" component={OrderStatus} />
         <Route path="/track" component={TrackOrder} />
+        <Route path="/admin" component={Admin} />
         <Route component={NotFound} />
       </Switch>
     </Shell>
