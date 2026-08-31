@@ -113,7 +113,7 @@ router.get("/admin/orders", requireAdmin, async (req, res) => {
 });
 
 router.patch("/admin/orders/:orderId/status", requireAdmin, async (req, res) => {
-  const orderId = Number.parseInt(req.params.orderId, 10);
+  const orderId = Number.parseInt(String(req.params.orderId), 10);
   const status = typeof req.body?.status === "string" ? req.body.status : "";
 
   if (!Number.isInteger(orderId) || !allowedStatuses.has(status)) {
