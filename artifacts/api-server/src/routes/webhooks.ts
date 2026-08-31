@@ -61,7 +61,9 @@ router.post("/webhooks/whop", async (req: Request, res: Response) => {
 
   const status = event.type === "payment.succeeded"
     ? "paid"
-    : event.type === "payment.failed" || event.type === "payment.refunded"
+    : event.type === "payment.failed"
+      || event.type === "refund_created"
+      || event.type === "refund_updated"
       ? "failed"
       : null;
 
