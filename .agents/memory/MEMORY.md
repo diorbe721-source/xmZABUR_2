@@ -1,0 +1,1 @@
+- [Whop webhook event naming](whop-webhooks.md) — API registration uses underscore event names; delivered v1 payloads use dotted event types.
