@@ -44,5 +44,8 @@ timeoutMs = 20000
 [userenv.shared]
 WHOP_COMPANY_ID = "WHOP_COMPANY_ID"
 
+[userenv.production]
+USE_DEVELOPMENT_DATABASE = "true"
+
 [nix]
 channel = "stable-25_05"
