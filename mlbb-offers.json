@@ -1,0 +1,236 @@
+{
+  "ok": true,
+  "kind": "topup",
+  "category_id": "mobile_legends_global",
+  "name": "Mobile Legends (Global)",
+  "offers": [
+    {
+      "offer_id": "500_65_diamonds_first_top_up_bonus",
+      "name": "500 + 65 Diamonds (First Top-Up Bonus)",
+      "price_usd": "7.4189"
+    },
+    {
+      "offer_id": "250_25_diamonds_first_top_up_bonus",
+      "name": "250 + 25 Diamonds (First Top-Up Bonus)",
+      "price_usd": "3.6140"
+    },
+    {
+      "offer_id": "150_15_diamonds_first_top_up_bonus",
+      "name": "150 + 15 Diamonds (First Top-Up Bonus)",
+      "price_usd": "2.2532"
+    },
+    {
+      "offer_id": "50_5_diamonds_first_top_up_bonus",
+      "name": "50 + 5 Diamonds (First Top-Up Bonus)",
+      "price_usd": "0.7517"
+    },
+    {
+      "offer_id": "1084_diamonds",
+      "name": "1084 Diamonds",
+      "price_usd": "17.4700"
+    },
+    {
+      "offer_id": "7740_1548_diamonds",
+      "name": "7740 + 1548 Diamonds",
+      "price_usd": "116.3852"
+    },
+    {
+      "offer_id": "4649_883_diamonds",
+      "name": "4649 + 883 Diamonds",
+      "price_usd": "70.0730"
+    },
+    {
+      "offer_id": "3099_589_diamonds",
+      "name": "3099 + 589 Diamonds",
+      "price_usd": "46.4092"
+    },
+    {
+      "offer_id": "1860_335_diamonds",
+      "name": "1860 + 335 Diamonds",
+      "price_usd": "27.8189"
+    },
+    {
+      "offer_id": "625_81_diamonds",
+      "name": "625 + 81 Diamonds",
+      "price_usd": "9.1906"
+    },
+    {
+      "offer_id": "234_23_diamonds",
+      "name": "234 + 23 Diamonds",
+      "price_usd": "3.3840"
+    },
+    {
+      "offer_id": "156_16_diamonds",
+      "name": "156 + 16 Diamonds",
+      "price_usd": "2.3373"
+    },
+    {
+      "offer_id": "78_8_diamonds",
+      "name": "78 + 8 Diamonds",
+      "price_usd": "1.1782"
+    },
+    {
+      "offer_id": "10_1_diamonds",
+      "name": "10 + 1 Diamonds",
+      "price_usd": "0.2100"
+    },
+    {
+      "offer_id": "20_2_diamonds",
+      "name": "20 + 2 Diamonds",
+      "price_usd": "0.4300"
+    },
+    {
+      "offer_id": "51_5_diamonds",
+      "name": "51 + 5 Diamonds",
+      "price_usd": "1.0600"
+    },
+    {
+      "offer_id": "102_10_diamonds",
+      "name": "102 + 10 Diamonds",
+      "price_usd": "2.1100"
+    },
+    {
+      "offer_id": "504_66_diamonds",
+      "name": "504 + 66 Diamonds",
+      "price_usd": "9.1000"
+    },
+    {
+      "offer_id": "1007_156_diamonds",
+      "name": "1007 + 156 Diamonds",
+      "price_usd": "18.6600"
+    },
+    {
+      "offer_id": "2015_383_diamonds",
+      "name": "2015 + 383 Diamonds",
+      "price_usd": "32.7000"
+    },
+    {
+      "offer_id": "14_diamonds",
+      "name": "14 Diamonds",
+      "price_usd": "0.2300"
+    },
+    {
+      "offer_id": "42_diamonds",
+      "name": "42 Diamonds",
+      "price_usd": "0.6900"
+    },
+    {
+      "offer_id": "70_diamonds",
+      "name": "70 Diamonds",
+      "price_usd": "1.1500"
+    },
+    {
+      "offer_id": "140_diamonds",
+      "name": "140 Diamonds",
+      "price_usd": "2.3000"
+    },
+    {
+      "offer_id": "284_diamonds",
+      "name": "284 Diamonds",
+      "price_usd": "4.6100"
+    },
+    {
+      "offer_id": "355_diamonds",
+      "name": "355 Diamonds",
+      "price_usd": "5.7700"
+    },
+    {
+      "offer_id": "429_diamonds",
+      "name": "429 Diamonds",
+      "price_usd": "5.7430"
+    },
+    {
+      "offer_id": "716_diamonds",
+      "name": "716 Diamonds",
+      "price_usd": "11.5300"
+    },
+    {
+      "offer_id": "1446_diamonds",
+      "name": "1446 Diamonds",
+      "price_usd": "22.9900"
+    },
+    {
+      "offer_id": "2976_diamonds",
+      "name": "2976 Diamonds",
+      "price_usd": "46.1100"
+    },
+    {
+      "offer_id": "7502_diamonds",
+      "name": "7502 Diamonds",
+      "price_usd": "115.0600"
+    },
+    {
+      "offer_id": "weekly_pass",
+      "name": "Weekly Pass",
+      "price_usd": "1.4675"
+    },
+    {
+      "offer_id": "weekly_elite_pack",
+      "name": "Weekly Elite Pack",
+      "price_usd": "0.7630"
+    },
+    {
+      "offer_id": "twilight_pass",
+      "name": "Twilight Pass",
+      "price_usd": "7.7566"
+    },
+    {
+      "offer_id": "5_diamonds",
+      "name": "5 Diamonds",
+      "price_usd": "0.0900"
+    },
+    {
+      "offer_id": "12_diamonds",
+      "name": "12 Diamonds",
+      "price_usd": "0.2240"
+    },
+    {
+      "offer_id": "19_diamonds",
+      "name": "19 Diamonds",
+      "price_usd": "0.3461"
+    },
+    {
+      "offer_id": "28_diamonds",
+      "name": "28 Diamonds",
+      "price_usd": "0.5152"
+    },
+    {
+      "offer_id": "170_diamonds",
+      "name": "170 Diamonds",
+      "price_usd": "2.9140"
+    },
+    {
+      "offer_id": "240_diamonds",
+      "name": "240 Diamonds",
+      "price_usd": "4.1296"
+    },
+    {
+      "offer_id": "296_diamonds",
+      "name": "296 Diamonds",
+      "price_usd": "5.0800"
+    },
+    {
+      "offer_id": "2010_diamonds",
+      "name": "2010 Diamonds",
+      "price_usd": "31.7406"
+    },
+    {
+      "offer_id": "monthly_elite_pack",
+      "name": "Monthly Elite Pack",
+      "price_usd": "3.7868"
+    }
+  ],
+  "fields": [
+    {
+      "key": "player_id",
+      "label": "Player ID",
+      "type": "text"
+    },
+    {
+      "key": "server_id",
+      "label": "Server ID",
+      "type": "text"
+    }
+  ],
+  "note": "Region: Global\nMobile Legends top-up.\nNot available for Indonesia and BR regions.\n\nThe following packs are not available for MY/SG/PH/ID/RU regions:\n78+8, 156+16, 234+23, 625+81, 1860+335, 3099+589, 4649+883, 7740+1548 Diamonds, Weekly Pass.\n\nFirst Top-Up Bonus:\n50+5 → 50+50\n150+15 → 150+150\n250+25 → 250+250\n500+65 → 500+500"
+}

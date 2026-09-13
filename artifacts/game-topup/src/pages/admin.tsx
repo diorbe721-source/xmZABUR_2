@@ -13,6 +13,27 @@ import {
 import type { Order } from "@workspace/api-client-react";
 import { formatSomFromUsd } from "@/lib/currency";
 
+type AdminGame = {
+  id: number;
+  name: string;
+  slug: string;
+  description: string;
+  imageUrl: string;
+  currency: string;
+  isActive: boolean;
+};
+
+type AdminPackage = {
+  id: number;
+  gameId: number;
+  name: string;
+  amount: number;
+  bonus: number | null;
+  price: string;
+  currency: string;
+  isPopular: boolean;
+};
+
 type AdminStatus = Order["status"];
 
 const statusLabels: Record<AdminStatus, string> = {
@@ -60,6 +81,118 @@ export default function Admin() {
   const [updatingId, setUpdatingId] = useState<number | null>(null);
   const [dashboardError, setDashboardError] = useState("");
 
+  const [tab, setTab] = useState<"orders" | "catalog">("orders");
+  const [games, setGames] = useState<AdminGame[]>([]);
+  const [loadingGames, setLoadingGames] = useState(false);
+  const [catalogError, setCatalogError] = useState("");
+  const [newGame, setNewGame] = useState({ name: "", slug: "", description: "", imageUrl: "", currency: "Diamonds" });
+  const [selectedGameId, setSelectedGameId] = useState<number | null>(null);
+  const [packages, setPackages] = useState<AdminPackage[]>([]);
+  const [loadingPackages, setLoadingPackages] = useState(false);
+  const [newPackage, setNewPackage] = useState({ name: "", amount: "", bonus: "", price: "", currency: "Diamonds", isPopular: false });
+
+  const loadGames = async () => {
+    setLoadingGames(true);
+    setCatalogError("");
+    try {
+      const data = await apiRequest<AdminGame[]>("/api/admin/games");
+      setGames(data);
+    } catch (error) {
+      setCatalogError(error instanceof Error ? error.message : "Xatolik yuz berdi");
+    } finally {
+      setLoadingGames(false);
+    }
+  };
+
+  const loadPackages = async (gameId: number) => {
+    setLoadingPackages(true);
+    try {
+      const data = await apiRequest<AdminPackage[]>(`/api/admin/packages?gameId=${gameId}`);
+      setPackages(data);
+    } catch (error) {
+      setCatalogError(error instanceof Error ? error.message : "Xatolik yuz berdi");
+    } finally {
+      setLoadingPackages(false);
+    }
+  };
+
+  const createGame = async (event: FormEvent) => {
+    event.preventDefault();
+    setCatalogError("");
+    try {
+      await apiRequest<AdminGame>("/api/admin/games", {
+        method: "POST",
+        body: JSON.stringify(newGame),
+      });
+      setNewGame({ name: "", slug: "", description: "", imageUrl: "", currency: "Diamonds" });
+      void loadGames();
+    } catch (error) {
+      setCatalogError(error instanceof Error ? error.message : "O'yin qo'shilmadi");
+    }
+  };
+
+  const toggleGameActive = async (game: AdminGame) => {
+    try {
+      await apiRequest<AdminGame>(`/api/admin/games/${game.id}`, {
+        method: "PATCH",
+        body: JSON.stringify({ isActive: !game.isActive }),
+      });
+      void loadGames();
+    } catch (error) {
+      setCatalogError(error instanceof Error ? error.message : "Yangilanmadi");
+    }
+  };
+
+  const deleteGame = async (gameId: number) => {
+    if (!confirm("Bu o'yinni va uning barcha paketlarini o'chirishni tasdiqlaysizmi?")) return;
+    try {
+      await apiRequest(`/api/admin/games/${gameId}`, { method: "DELETE" });
+      if (selectedGameId === gameId) setSelectedGameId(null);
+      void loadGames();
+    } catch (error) {
+      setCatalogError(error instanceof Error ? error.message : "O'chirilmadi");
+    }
+  };
+
+  const selectGame = (gameId: number) => {
+    setSelectedGameId(gameId);
+    void loadPackages(gameId);
+  };
+
+  const createPackage = async (event: FormEvent) => {
+    event.preventDefault();
+    if (!selectedGameId) return;
+    setCatalogError("");
+    try {
+      await apiRequest<AdminPackage>("/api/admin/packages", {
+        method: "POST",
+        body: JSON.stringify({
+          gameId: selectedGameId,
+          name: newPackage.name,
+          amount: Number.parseInt(newPackage.amount, 10),
+          bonus: newPackage.bonus ? Number.parseInt(newPackage.bonus, 10) : null,
+          price: newPackage.price,
+          currency: newPackage.currency,
+          isPopular: newPackage.isPopular,
+        }),
+      });
+      setNewPackage({ name: "", amount: "", bonus: "", price: "", currency: "Diamonds", isPopular: false });
+      void loadPackages(selectedGameId);
+    } catch (error) {
+      setCatalogError(error instanceof Error ? error.message : "Paket qo'shilmadi");
+    }
+  };
+
+  const deletePackage = async (packageId: number) => {
+    if (!confirm("Bu paketni o'chirishni tasdiqlaysizmi?")) return;
+    try {
+      await apiRequest(`/api/admin/packages/${packageId}`, { method: "DELETE" });
+      if (selectedGameId) void loadPackages(selectedGameId);
+    } catch (error) {
+      setCatalogError(error instanceof Error ? error.message : "O'chirilmadi");
+    }
+  };
+
   const loadOrders = async () => {
     setLoadingOrders(true);
     setDashboardError("");
@@ -77,7 +210,10 @@ export default function Admin() {
     apiRequest<{ authenticated: boolean }>("/api/admin/me")
       .then((result) => {
         setAuthenticated(result.authenticated);
-        if (result.authenticated) void loadOrders();
+        if (result.authenticated) {
+          void loadOrders();
+          void loadGames();
+        }
       })
       .catch(() => setAuthenticated(false))
       .finally(() => setCheckingAuth(false));
@@ -94,6 +230,7 @@ export default function Admin() {
       setPassword("");
       setAuthenticated(true);
       void loadOrders();
+      void loadGames();
     } catch (error) {
       setLoginError(error instanceof Error ? error.message : "Parol noto'g'ri");
     }
@@ -211,6 +348,27 @@ export default function Admin() {
           </div>
         </div>
 
+        <div className="flex items-center gap-2 mb-8 border-b border-white/10">
+          <button
+            onClick={() => setTab("orders")}
+            className={`px-4 py-3 text-sm font-bold border-b-2 transition-colors ${
+              tab === "orders" ? "border-primary text-white" : "border-transparent text-muted-foreground hover:text-white"
+            }`}
+          >
+            Buyurtmalar
+          </button>
+          <button
+            onClick={() => setTab("catalog")}
+            className={`px-4 py-3 text-sm font-bold border-b-2 transition-colors ${
+              tab === "catalog" ? "border-primary text-white" : "border-transparent text-muted-foreground hover:text-white"
+            }`}
+          >
+            O'yinlar va paketlar
+          </button>
+        </div>
+
+        {tab === "orders" && (
+        <>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
           <div className="bg-card border border-white/10 rounded-2xl p-5">
             <p className="text-muted-foreground text-sm">Jami buyurtmalar</p>
@@ -306,6 +464,209 @@ export default function Admin() {
             </div>
           )}
         </div>
+        </>)}
+
+        {tab === "catalog" && (
+          <div className="space-y-8">
+            {catalogError && (
+              <div className="p-4 rounded-xl border border-red-400/20 bg-red-400/10 text-red-200 flex items-center gap-2">
+                <AlertTriangle className="w-5 h-5" /> {catalogError}
+              </div>
+            )}
+
+            <div className="bg-card border border-white/10 rounded-2xl overflow-hidden">
+              <div className="px-5 py-4 border-b border-white/10 flex items-center justify-between">
+                <h2 className="text-lg font-bold text-white">O'yinlar</h2>
+                <button
+                  onClick={() => void loadGames()}
+                  className="px-3 py-2 rounded-lg border border-white/10 text-white hover:bg-white/5 flex items-center gap-2 text-sm"
+                >
+                  <RefreshCw className={`w-4 h-4 ${loadingGames ? "animate-spin" : ""}`} /> Yangilash
+                </button>
+              </div>
+
+              <form onSubmit={createGame} className="p-5 grid grid-cols-1 md:grid-cols-2 gap-3 border-b border-white/10">
+                <input
+                  value={newGame.name}
+                  onChange={(e) => setNewGame({ ...newGame, name: e.target.value })}
+                  placeholder="Nomi (masalan: Mobile Legends: Bang Bang)"
+                  required
+                  className="bg-background border border-white/15 rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-primary"
+                />
+                <input
+                  value={newGame.slug}
+                  onChange={(e) => setNewGame({ ...newGame, slug: e.target.value })}
+                  placeholder="Slug (masalan: mobile-legends)"
+                  required
+                  className="bg-background border border-white/15 rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-primary"
+                />
+                <input
+                  value={newGame.description}
+                  onChange={(e) => setNewGame({ ...newGame, description: e.target.value })}
+                  placeholder="Tavsif"
+                  required
+                  className="bg-background border border-white/15 rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-primary"
+                />
+                <input
+                value={newGame.imageUrl}
+                  onChange={(e) => setNewGame({ ...newGame, imageUrl: e.target.value })}
+                  placeholder="Rasm yo'li (masalan: /images/mobile-legends.jpg)"
+                  required
+                  className="bg-background border border-white/15 rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-primary"
+                />
+                <input
+                  value={newGame.currency}
+                  onChange={(e) => setNewGame({ ...newGame, currency: e.target.value })}
+                  placeholder="Valyuta nomi (masalan: Diamonds)"
+                  required
+                  className="bg-background border border-white/15 rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-primary"
+                />
+                <button
+                  type="submit"
+                  className="py-3 rounded-xl bg-primary text-primary-foreground font-bold hover:glow-primary transition-all"
+                >
+                  + O'yin qo'shish
+                </button>
+              </form>
+
+              {loadingGames && games.length === 0 ? (
+                <div className="p-12 text-center text-muted-foreground">
+                  <RefreshCw className="w-6 h-6 mx-auto animate-spin mb-3" /> Yuklanmoqda...
+                </div>
+              ) : games.length === 0 ? (
+                <div className="p-12 text-center text-muted-foreground">Hozircha o'yinlar yo'q.</div>
+              ) : (
+                <div className="divide-y divide-white/5">
+                  {games.map((game) => (
+                    <div
+                      key={game.id}
+                      className={`p-5 flex items-center justify-between gap-3 cursor-pointer ${
+                        selectedGameId === game.id ? "bg-white/[0.03]" : ""
+                      }`}
+                      onClick={() => selectGame(game.id)}
+                    >
+                      <div>
+                        <p className="font-bold text-white">{game.name}</p>
+                        <p className="text-sm text-muted-foreground">{game.slug} · {game.currency}</p>
+                      </div>
+                      <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
+                        <button
+                          onClick={() => void toggleGameActive(game)}
+                          className={`px-3 py-1.5 rounded-lg text-xs font-bold border ${
+                            game.isActive
+                              ? "border-emerald-400/20 text-emerald-300 bg-emerald-400/10"
+                              : "border-white/10 text-muted-foreground"
+                          }`}
+                        >
+                          {game.isActive ? "Faol" : "Faol emas"}
+                        </button>
+                        <button
+                          onClick={() => void deleteGame(game.id)}
+                          className="px-3 py-1.5 rounded-lg text-xs font-bold border border-red-400/20 text-red-300 hover:bg-red-400/10"
+                        >
+                          O'chirish
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {selectedGameId && (
+              <div className="bg-card border border-white/10 rounded-2xl overflow-hidden">
+                <div className="px-5 py-4 border-b border-white/10">
+                  <h2 className="text-lg font-bold text-white">
+                    Paketlar — {games.find((g) => g.id === selectedGameId)?.name}
+                  </h2>
+                </div>
+
+                <form onSubmit={createPackage} className="p-5 grid grid-cols-1 md:grid-cols-3 gap-3 border-b border-white/10">
+                  <input
+                    value={newPackage.name}
+                    onChange={(e) => setNewPackage({ ...newPackage, name: e.target.value })}
+                    placeholder="Nomi (masalan: 78 Diamonds)"
+                    required
+                    className="bg-background border border-white/15 rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-primary"
+                  />
+                  <input
+                    type="number"
+                    value={newPackage.amount}
+                    onChange={(e) => setNewPackage({ ...newPackage, amount: e.target.value })}
+                    placeholder="Miqdor (masalan: 78)"
+                    required
+                    className="bg-background border border-white/15 rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-primary"
+                  />
+                  <input
+                    type="number"
+                    value={newPackage.bonus}
+                    onChange={(e) => setNewPackage({ ...newPackage, bonus: e.target.value })}
+                    placeholder="Bonus (ixtiyoriy)"
+                    className="bg-background border border-white/15 rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-primary"
+                  />
+                  <input
+                    value={newPackage.price}
+                    onChange={(e) => setNewPackage({ ...newPackage, price: e.target.value })}
+                    placeholder="Narx USD'da (masalan: 1.28)"
+                    required
+                    className="bg-background border border-white/15 rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-primary"
+                  />
+                  <input
+                    value={newPackage.currency}
+                    onChange={(e) => setNewPackage({ ...newPackage, currency: e.target.value })}
+                    placeholder="Valyuta yorlig'i (masalan: Diamonds)"
+                    required
+                    className="bg-background border border-white/15 rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-primary"
+                  />
+                  <label className="flex items-center gap-2 text-white text-sm px-2">
+                    <input
+                      type="checkbox"
+                      checked={newPackage.isPopular}
+                      onChange={(e) => setNewPackage({ ...newPackage, isPopular: e.target.checked })}
+                    />
+                    Popular deb belgilash
+                  </label>
+                  <button
+                    type="submit"
+                    className="md:col-span-3 py-3 rounded-xl bg-primary text-primary-foreground font-bold hover:glow-primary transition-all"
+                  >
+                    + Paket qo'shish
+                  </button>
+                </form>
+
+                {loadingPackages ? (
+                  <div className="p-12 text-center text-muted-foreground">
+                    <RefreshCw className="w-6 h-6 mx-auto animate-spin mb-3" /> Yuklanmoqda...
+                  </div>
+                ) : packages.length === 0 ? (
+                  <div className="p-12 text-center text-muted-foreground">Hozircha paketlar yo'q.</div>
+                ) : (
+                  <div className="divide-y divide-white/5">
+                    {packages.map((pkg) => (
+                      <div key={pkg.id} className="p-5 flex items-center justify-between gap-3">
+                        <div>
+                          <p className="font-bold text-white">
+                            {pkg.amount} {pkg.currency} {pkg.bonus ? `+ ${pkg.bonus} bonus` : ""}
+                          </p>
+                          <p className="text-sm text-muted-foreground">
+                            {pkg.name} · {formatSomFromUsd(parseFloat(pkg.price))} {pkg.isPopular ? "· Popular" : ""}
+                          </p>
+                        </div>
+                        <button
+                          onClick={() => void deletePackage(pkg.id)}
+                          className="px-3 py-1.5 rounded-lg text-xs font-bold border border-red-400/20 text-red-300 hover:bg-red-400/10"
+                        >
+                          O'chirish
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        )}
+
         <div className="mt-6 flex justify-center">
           <Link href="/" className="text-muted-foreground hover:text-white text-sm">
             ← Saytga qaytish

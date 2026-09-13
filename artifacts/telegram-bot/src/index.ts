@@ -138,6 +138,7 @@ async function createCheckout(packageId: number, playerId: string) {
 // ─── Main menu message ────────────────────────────────────────────────────
 function mainMenuKeyboard() {
   return Markup.inlineKeyboard([
+    [Markup.button.webApp("🎮 Open App", "https://zubapin--zaburmlbb.replit.app/")],
     [Markup.button.callback("🎮 O'yinlar ro'yxati", "show_games")],
     [Markup.button.callback("📋 Buyurtmani tekshirish", "check_order")],
   ]);
