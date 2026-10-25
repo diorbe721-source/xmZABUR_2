@@ -4,6 +4,7 @@ import { db, gamesTable, ordersTable, packagesTable } from "@workspace/db";
 
 const API_BASE = (process.env.UZPINHUB_API_BASE_URL || "https://api.uzpinhub.uz/api").replace(/\/+$/, "");
 const REQUEST_TIMEOUT_MS = 10_000;
+let authenticationBlocked = false;
 
 type ProviderOrderResponse = {
   order_id?: string;
@@ -15,6 +16,9 @@ type ProviderOrderResponse = {
 async function providerRequest<T>(path: string, method: "GET" | "POST", body?: unknown): Promise<T> {
   const apiKey = process.env.UZPINHUB_API_KEY;
   if (!apiKey) throw new Error("UZPINHUB_API_KEY is not configured");
+  if (authenticationBlocked) {
+    throw new Error("UZPINHUB authentication previously failed; verify the API key before retrying");
+  }
 
   const response = await fetch(`${API_BASE}/${path.replace(/^\/+/, "")}`, {
     method,
@@ -28,6 +32,8 @@ async function providerRequest<T>(path: string, method: "GET" | "POST", body?: u
   });
 
   if (!response.ok) {
+    // The provider warns repeated authentication failures may permanently block this IP.
+    if (response.status === 401) authenticationBlocked = true;
     // Do not include provider response bodies: they may contain sensitive details.
     throw new Error(`UZPINHUB request failed with HTTP ${response.status}`);
   }
