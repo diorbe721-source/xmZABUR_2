@@ -21,6 +21,7 @@ type AdminGame = {
   imageUrl: string;
   currency: string;
   isActive: boolean;
+  uzpinhubGameId: string | null;
 };
 
 type AdminPackage = {
@@ -32,6 +33,7 @@ type AdminPackage = {
   price: string;
   currency: string;
   isPopular: boolean;
+  uzpinhubProductId: string | null;
 };
 
 type AdminStatus = Order["status"];
@@ -85,11 +87,11 @@ export default function Admin() {
   const [games, setGames] = useState<AdminGame[]>([]);
   const [loadingGames, setLoadingGames] = useState(false);
   const [catalogError, setCatalogError] = useState("");
-  const [newGame, setNewGame] = useState({ name: "", slug: "", description: "", imageUrl: "", currency: "Diamonds" });
+  const [newGame, setNewGame] = useState({ name: "", slug: "", description: "", imageUrl: "", currency: "Diamonds", uzpinhubGameId: "" });
   const [selectedGameId, setSelectedGameId] = useState<number | null>(null);
   const [packages, setPackages] = useState<AdminPackage[]>([]);
   const [loadingPackages, setLoadingPackages] = useState(false);
-  const [newPackage, setNewPackage] = useState({ name: "", amount: "", bonus: "", price: "", currency: "Diamonds", isPopular: false });
+  const [newPackage, setNewPackage] = useState({ name: "", amount: "", bonus: "", price: "", currency: "Diamonds", isPopular: false, uzpinhubProductId: "" });
 
   const loadGames = async () => {
     setLoadingGames(true);
@@ -124,7 +126,7 @@ export default function Admin() {
         method: "POST",
         body: JSON.stringify(newGame),
       });
-      setNewGame({ name: "", slug: "", description: "", imageUrl: "", currency: "Diamonds" });
+      setNewGame({ name: "", slug: "", description: "", imageUrl: "", currency: "Diamonds", uzpinhubGameId: "" });
       void loadGames();
     } catch (error) {
       setCatalogError(error instanceof Error ? error.message : "O'yin qo'shilmadi");
@@ -174,9 +176,10 @@ export default function Admin() {
           price: newPackage.price,
           currency: newPackage.currency,
           isPopular: newPackage.isPopular,
+          uzpinhubProductId: newPackage.uzpinhubProductId.trim() || null,
         }),
       });
-      setNewPackage({ name: "", amount: "", bonus: "", price: "", currency: "Diamonds", isPopular: false });
+      setNewPackage({ name: "", amount: "", bonus: "", price: "", currency: "Diamonds", isPopular: false, uzpinhubProductId: "" });
       void loadPackages(selectedGameId);
     } catch (error) {
       setCatalogError(error instanceof Error ? error.message : "Paket qo'shilmadi");
@@ -521,6 +524,12 @@ export default function Admin() {
                   required
                   className="bg-background border border-white/15 rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-primary"
                 />
+                <input
+                  value={newGame.uzpinhubGameId}
+                  onChange={(e) => setNewGame({ ...newGame, uzpinhubGameId: e.target.value })}
+                  placeholder="UZPINHUB game ID (UUID, optional)"
+                  className="bg-background border border-white/15 rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-primary"
+                />
                 <button
                   type="submit"
                   className="py-3 rounded-xl bg-primary text-primary-foreground font-bold hover:glow-primary transition-all"
@@ -548,6 +557,7 @@ export default function Admin() {
                       <div>
                         <p className="font-bold text-white">{game.name}</p>
                         <p className="text-sm text-muted-foreground">{game.slug} · {game.currency}</p>
+                        <p className="text-xs text-muted-foreground">UZPINHUB game ID: {game.uzpinhubGameId || "sozlanmagan"}</p>
                       </div>
                       <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
                         <button
@@ -618,6 +628,12 @@ export default function Admin() {
                     required
                     className="bg-background border border-white/15 rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-primary"
                   />
+                  <input
+                    value={newPackage.uzpinhubProductId}
+                    onChange={(e) => setNewPackage({ ...newPackage, uzpinhubProductId: e.target.value })}
+                    placeholder="UZPINHUB product ID (UUID, optional)"
+                    className="bg-background border border-white/15 rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-primary"
+                  />
                   <label className="flex items-center gap-2 text-white text-sm px-2">
                     <input
                       type="checkbox"
@@ -651,6 +667,7 @@ export default function Admin() {
                           <p className="text-sm text-muted-foreground">
                             {pkg.name} · {formatSomFromUsd(parseFloat(pkg.price))} {pkg.isPopular ? "· Popular" : ""}
                           </p>
+                          <p className="text-xs text-muted-foreground">UZPINHUB product ID: {pkg.uzpinhubProductId || "sozlanmagan"}</p>
                         </div>
                         <button
                           onClick={() => void deletePackage(pkg.id)}
