@@ -85,11 +85,13 @@ export default function Admin() {
 
   const [tab, setTab] = useState<"orders" | "catalog">("orders");
   const [games, setGames] = useState<AdminGame[]>([]);
+  const [gameProviderIds, setGameProviderIds] = useState<Record<number, string>>({});
   const [loadingGames, setLoadingGames] = useState(false);
   const [catalogError, setCatalogError] = useState("");
   const [newGame, setNewGame] = useState({ name: "", slug: "", description: "", imageUrl: "", currency: "Diamonds", uzpinhubGameId: "" });
   const [selectedGameId, setSelectedGameId] = useState<number | null>(null);
   const [packages, setPackages] = useState<AdminPackage[]>([]);
+  const [packageProviderIds, setPackageProviderIds] = useState<Record<number, string>>({});
   const [loadingPackages, setLoadingPackages] = useState(false);
   const [newPackage, setNewPackage] = useState({ name: "", amount: "", bonus: "", price: "", currency: "Diamonds", isPopular: false, uzpinhubProductId: "" });
 
@@ -99,6 +101,7 @@ export default function Admin() {
     try {
       const data = await apiRequest<AdminGame[]>("/api/admin/games");
       setGames(data);
+      setGameProviderIds(Object.fromEntries(data.map((game) => [game.id, game.uzpinhubGameId || ""])));
     } catch (error) {
       setCatalogError(error instanceof Error ? error.message : "Xatolik yuz berdi");
     } finally {
@@ -111,6 +114,7 @@ export default function Admin() {
     try {
       const data = await apiRequest<AdminPackage[]>(`/api/admin/packages?gameId=${gameId}`);
       setPackages(data);
+      setPackageProviderIds(Object.fromEntries(data.map((pkg) => [pkg.id, pkg.uzpinhubProductId || ""])));
     } catch (error) {
       setCatalogError(error instanceof Error ? error.message : "Xatolik yuz berdi");
     } finally {
@@ -130,6 +134,32 @@ export default function Admin() {
       void loadGames();
     } catch (error) {
       setCatalogError(error instanceof Error ? error.message : "O'yin qo'shilmadi");
+    }
+  };
+
+  const saveGameProviderId = async (game: AdminGame) => {
+    setCatalogError("");
+    try {
+      await apiRequest<AdminGame>(`/api/admin/games/${game.id}`, {
+        method: "PATCH",
+        body: JSON.stringify({ uzpinhubGameId: gameProviderIds[game.id]?.trim() || null }),
+      });
+      void loadGames();
+    } catch (error) {
+      setCatalogError(error instanceof Error ? error.message : "UZPINHUB game ID saqlanmadi");
+    }
+  };
+
+  const savePackageProviderId = async (pkg: AdminPackage) => {
+    setCatalogError("");
+    try {
+      await apiRequest<AdminPackage>(`/api/admin/packages/${pkg.id}`, {
+        method: "PATCH",
+        body: JSON.stringify({ uzpinhubProductId: packageProviderIds[pkg.id]?.trim() || null }),
+      });
+      if (selectedGameId) void loadPackages(selectedGameId);
+    } catch (error) {
+      setCatalogError(error instanceof Error ? error.message : "UZPINHUB product ID saqlanmadi");
     }
   };
 
@@ -557,7 +587,15 @@ export default function Admin() {
                       <div>
                         <p className="font-bold text-white">{game.name}</p>
                         <p className="text-sm text-muted-foreground">{game.slug} · {game.currency}</p>
-                        <p className="text-xs text-muted-foreground">UZPINHUB game ID: {game.uzpinhubGameId || "sozlanmagan"}</p>
+                        <div className="mt-2 flex flex-wrap gap-2" onClick={(e) => e.stopPropagation()}>
+                          <input
+                            value={gameProviderIds[game.id] ?? ""}
+                            onChange={(e) => setGameProviderIds((current) => ({ ...current, [game.id]: e.target.value }))}
+                            placeholder="UZPINHUB game UUID"
+                            className="min-w-[220px] bg-background border border-white/15 rounded-lg px-3 py-2 text-xs text-white"
+                          />
+                          <button onClick={() => void saveGameProviderId(game)} className="px-3 py-2 rounded-lg text-xs font-bold border border-primary/30 text-primary">ID saqlash</button>
+                        </div>
                       </div>
                       <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
                         <button
@@ -667,7 +705,15 @@ export default function Admin() {
                           <p className="text-sm text-muted-foreground">
                             {pkg.name} · {formatSomFromUsd(parseFloat(pkg.price))} {pkg.isPopular ? "· Popular" : ""}
                           </p>
-                          <p className="text-xs text-muted-foreground">UZPINHUB product ID: {pkg.uzpinhubProductId || "sozlanmagan"}</p>
+                          <div className="mt-2 flex flex-wrap gap-2">
+                            <input
+                              value={packageProviderIds[pkg.id] ?? ""}
+                              onChange={(e) => setPackageProviderIds((current) => ({ ...current, [pkg.id]: e.target.value }))}
+                              placeholder="UZPINHUB product UUID"
+                              className="min-w-[220px] bg-background border border-white/15 rounded-lg px-3 py-2 text-xs text-white"
+                            />
+                            <button onClick={() => void savePackageProviderId(pkg)} className="px-3 py-2 rounded-lg text-xs font-bold border border-primary/30 text-primary">ID saqlash</button>
+                          </div>
                         </div>
                         <button
                           onClick={() => void deletePackage(pkg.id)}
