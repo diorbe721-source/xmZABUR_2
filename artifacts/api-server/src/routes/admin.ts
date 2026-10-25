@@ -148,6 +148,7 @@ router.post("/admin/games", requireAdmin, async (req, res) => {
   const imageUrl = typeof body.imageUrl === "string" ? body.imageUrl : "";
   const currency = typeof body.currency === "string" ? body.currency : "";
   const isActive = body.isActive !== false;
+  const uzpinhubGameId = typeof body.uzpinhubGameId === "string" && body.uzpinhubGameId.trim() ? body.uzpinhubGameId.trim() : null;
 
   if (!name || !slug || !description || !imageUrl || !currency) {
     res.status(400).json({ error: "name, slug, description, imageUrl, currency talab qilinadi" });
@@ -157,7 +158,7 @@ router.post("/admin/games", requireAdmin, async (req, res) => {
   try {
     const [game] = await db
       .insert(gamesTable)
-      .values({ name, slug, description, imageUrl, currency, isActive })
+      .values({ name, slug, description, imageUrl, currency, isActive, uzpinhubGameId })
       .returning();
     res.status(201).json(game);
   } catch {
@@ -180,6 +181,7 @@ router.patch("/admin/games/:gameId", requireAdmin, async (req, res) => {
   if (typeof body.imageUrl === "string") updates.imageUrl = body.imageUrl;
   if (typeof body.currency === "string") updates.currency = body.currency;
   if (typeof body.isActive === "boolean") updates.isActive = body.isActive;
+  if (typeof body.uzpinhubGameId === "string" || body.uzpinhubGameId === null) updates.uzpinhubGameId = typeof body.uzpinhubGameId === "string" && body.uzpinhubGameId.trim() ? body.uzpinhubGameId.trim() : null;
 
   const [game] = await db
     .update(gamesTable)
@@ -237,6 +239,7 @@ router.post("/admin/packages", requireAdmin, async (req, res) => {
   const price = typeof body.price === "number" ? body.price.toFixed(2) : String(body.price ?? "").trim();
   const currency = typeof body.currency === "string" ? body.currency : "";
   const isPopular = body.isPopular === true;
+  const uzpinhubProductId = typeof body.uzpinhubProductId === "string" && body.uzpinhubProductId.trim() ? body.uzpinhubProductId.trim() : null;
 
   if (!Number.isInteger(gameId) || !name || !Number.isInteger(amount) || !price || !currency) {
     res.status(400).json({ error: "gameId, name, amount, price, currency talab qilinadi" });
@@ -251,7 +254,7 @@ router.post("/admin/packages", requireAdmin, async (req, res) => {
 
   const [pkg] = await db
     .insert(packagesTable)
-    .values({ gameId, name, amount, bonus, price, currency, isPopular, whopPlanId: null })
+    .values({ gameId, name, amount, bonus, price, currency, isPopular, whopPlanId: null, uzpinhubProductId })
     .returning();
   res.status(201).json(pkg);
 });
@@ -275,6 +278,7 @@ router.patch("/admin/packages/:packageId", requireAdmin, async (req, res) => {
   }
   if (typeof body.currency === "string") updates.currency = body.currency;
   if (typeof body.isPopular === "boolean") updates.isPopular = body.isPopular;
+  if (typeof body.uzpinhubProductId === "string" || body.uzpinhubProductId === null) updates.uzpinhubProductId = typeof body.uzpinhubProductId === "string" && body.uzpinhubProductId.trim() ? body.uzpinhubProductId.trim() : null;
 
   const [pkg] = await db
     .update(packagesTable)
@@ -313,6 +317,9 @@ function formatOrder(o: typeof ordersTable.$inferSelect) {
     status: o.status,
     checkoutUrl: o.checkoutUrl ?? null,
     whopCheckoutId: o.whopCheckoutId ?? null,
+    uzpinhubOrderId: o.uzpinhubOrderId ?? null,
+    uzpinhubStatus: o.uzpinhubStatus ?? null,
+    uzpinhubError: o.uzpinhubError ?? null,
     gameName: o.gameName ?? null,
     packageName: o.packageName ?? null,
     packageAmount: o.packageAmount ?? null,
