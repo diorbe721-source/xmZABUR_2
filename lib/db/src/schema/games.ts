@@ -10,6 +10,7 @@ export const gamesTable = pgTable("games", {
   imageUrl: text("image_url").notNull(),
   currency: text("currency").notNull(),
   isActive: boolean("is_active").notNull().default(true),
+  uzpinhubGameId: text("uzpinhub_game_id"),
 });
 
 export const insertGameSchema = createInsertSchema(gamesTable).omit({ id: true });
@@ -26,6 +27,7 @@ export const packagesTable = pgTable("packages", {
   currency: text("currency").notNull(),
   isPopular: boolean("is_popular").notNull().default(false),
   whopPlanId: text("whop_plan_id"),
+  uzpinhubProductId: text("uzpinhub_product_id"),
 });
 
 export const insertPackageSchema = createInsertSchema(packagesTable).omit({ id: true });
