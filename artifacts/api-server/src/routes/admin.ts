@@ -34,6 +34,12 @@ function readCookie(req: { headers: { cookie?: string } }) {
   return match ? decodeURIComponent(match.slice(ADMIN_COOKIE.length + 1)) : null;
 }
 
+function readSingleString(value: unknown) {
+  if (typeof value === "string") return value;
+  if (Array.isArray(value) && typeof value[0] === "string") return value[0];
+  return "";
+}
+
 function isAuthenticated(req: { headers: { cookie?: string } }) {
   const session = readCookie(req);
   if (!session) return false;
@@ -100,7 +106,7 @@ router.get("/admin/me", (req, res) => {
 });
 
 router.get("/admin/orders", requireAdmin, async (req, res) => {
-  const requestedLimit = Number.parseInt(String(req.query.limit ?? "100"), 10);
+  const requestedLimit = Number.parseInt(readSingleString(req.query.limit ?? "100"), 10);
   const limit = Number.isFinite(requestedLimit)
     ? Math.min(Math.max(requestedLimit, 1), 100)
     : 100;
@@ -113,7 +119,7 @@ router.get("/admin/orders", requireAdmin, async (req, res) => {
 });
 
 router.patch("/admin/orders/:orderId/status", requireAdmin, async (req, res) => {
-  const orderId = Number.parseInt(req.params.orderId, 10);
+  const orderId = Number.parseInt(readSingleString(req.params.orderId), 10);
   const status = typeof req.body?.status === "string" ? req.body.status : "";
 
   if (!Number.isInteger(orderId) || !allowedStatuses.has(status)) {
@@ -167,7 +173,7 @@ router.post("/admin/games", requireAdmin, async (req, res) => {
 });
 
 router.patch("/admin/games/:gameId", requireAdmin, async (req, res) => {
-  const gameId = Number.parseInt(req.params.gameId, 10);
+  const gameId = Number.parseInt(readSingleString(req.params.gameId), 10);
   if (!Number.isInteger(gameId)) {
     res.status(400).json({ error: "Noto'g'ri o'yin ID" });
     return;
@@ -197,7 +203,7 @@ router.patch("/admin/games/:gameId", requireAdmin, async (req, res) => {
 });
 
 router.delete("/admin/games/:gameId", requireAdmin, async (req, res) => {
-  const gameId = Number.parseInt(req.params.gameId, 10);
+  const gameId = Number.parseInt(readSingleString(req.params.gameId), 10);
   if (!Number.isInteger(gameId)) {
     res.status(400).json({ error: "Noto'g'ri o'yin ID" });
     return;
@@ -212,9 +218,9 @@ router.delete("/admin/games/:gameId", requireAdmin, async (req, res) => {
 });
 
 router.get("/admin/packages", requireAdmin, async (req, res) => {
-  const gameIdParam = req.query.gameId;
+  const gameIdParam = readSingleString(req.query.gameId);
   if (gameIdParam) {
-    const gameId = Number.parseInt(String(gameIdParam), 10);
+    const gameId = Number.parseInt(gameIdParam, 10);
     if (!Number.isInteger(gameId)) {
       res.status(400).json({ error: "Noto'g'ri o'yin ID" });
       return;
@@ -260,7 +266,7 @@ router.post("/admin/packages", requireAdmin, async (req, res) => {
 });
 
 router.patch("/admin/packages/:packageId", requireAdmin, async (req, res) => {
-  const packageId = Number.parseInt(req.params.packageId, 10);
+  const packageId = Number.parseInt(readSingleString(req.params.packageId), 10);
   if (!Number.isInteger(packageId)) {
     res.status(400).json({ error: "Noto'g'ri paket ID" });
     return;
@@ -294,7 +300,7 @@ router.patch("/admin/packages/:packageId", requireAdmin, async (req, res) => {
 });
 
 router.delete("/admin/packages/:packageId", requireAdmin, async (req, res) => {
-  const packageId = Number.parseInt(req.params.packageId, 10);
+  const packageId = Number.parseInt(readSingleString(req.params.packageId), 10);
   if (!Number.isInteger(packageId)) {
     res.status(400).json({ error: "Noto'g'ri paket ID" });
     return;

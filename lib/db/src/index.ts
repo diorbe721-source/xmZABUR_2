@@ -12,8 +12,24 @@ if (!databaseUrl) {
   );
 }
 
-function serializePoolError(error: unknown) {
-  if (!error || typeof error !== "object") return error;
+type SerializedPoolError = {
+  name?: string;
+  message?: string;
+  stack?: string;
+  code?: unknown;
+  detail?: unknown;
+  hint?: unknown;
+  severity?: unknown;
+  routine?: unknown;
+  cause?: unknown;
+};
+
+function serializePoolError(error: unknown): SerializedPoolError {
+  if (error === null || typeof error !== "object") {
+    return {
+      message: String(error),
+    };
+  }
 
   const value = error as Record<string, unknown>;
   return {
