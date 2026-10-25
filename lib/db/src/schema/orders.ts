@@ -12,6 +12,12 @@ export const ordersTable = pgTable("orders", {
   status: text("status").notNull().default("pending"),
   checkoutUrl: text("checkout_url"),
   whopCheckoutId: text("whop_checkout_id"),
+  uzpinhubGameId: text("uzpinhub_game_id"),
+  uzpinhubProductId: text("uzpinhub_product_id"),
+  uzpinhubOrderId: text("uzpinhub_order_id").unique(),
+  uzpinhubExternalOrderId: text("uzpinhub_external_order_id"),
+  uzpinhubStatus: text("uzpinhub_status"),
+  uzpinhubError: text("uzpinhub_error"),
   // Denormalized for order history display
   gameName: text("game_name"),
   packageName: text("package_name"),
