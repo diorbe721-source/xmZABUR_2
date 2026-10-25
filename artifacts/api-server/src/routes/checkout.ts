@@ -79,8 +79,8 @@ router.post("/checkout", async (req, res) => {
 
   const isMlbb = /mobile.?legends|mlbb/i.test(`${game.slug} ${game.name}`);
   if (isMlbb) {
-    if (!process.env.UZPINHUB_API_KEY) {
-      res.status(503).json({ error: "UZPINHUB is not configured yet" });
+    if (!process.env.UZPINHUB_API_KEY || !process.env.UZPINHUB_WEBHOOK_TOKEN) {
+      res.status(503).json({ error: "UZPINHUB server configuration is incomplete" });
       return;
     }
     if (!game.uzpinhubGameId || !pkg.uzpinhubProductId) {
