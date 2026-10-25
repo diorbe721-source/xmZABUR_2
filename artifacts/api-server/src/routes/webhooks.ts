@@ -2,7 +2,8 @@ import { Router, type Request, type Response } from "express";
 import { createHmac, timingSafeEqual } from "node:crypto";
 import { db } from "@workspace/db";
 import { ordersTable } from "@workspace/db";
-import { eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
+import { handleUzhubCallback, safeTokenEquals, submitPaidUzhubOrder } from "../lib/uzpinhubClient";
 
 const router = Router();
 const MAX_TIMESTAMP_DRIFT_SECONDS = 5 * 60;
@@ -14,6 +15,22 @@ type WhopEvent = {
   company_id?: string;
   data?: Record<string, unknown>;
 };
+
+router.post("/webhooks/uzpinhub", async (req: Request, res: Response) => {
+  const expectedToken = process.env.UZPINHUB_WEBHOOK_TOKEN;
+  const suppliedToken = typeof req.query.token === "string" ? req.query.token : undefined;
+  if (!safeTokenEquals(suppliedToken, expectedToken)) {
+    res.status(401).json({ error: "Invalid webhook token" });
+    return;
+  }
+
+  try {
+    const result = await handleUzhubCallback(req.body);
+    res.json(result);
+  } catch {
+    res.status(400).json({ error: "Invalid UZPINHUB callback payload" });
+  }
+});
 
 router.post("/webhooks/whop", async (req: Request, res: Response) => {
   const rawBody = Buffer.isBuffer(req.body)
@@ -75,8 +92,12 @@ router.post("/webhooks/whop", async (req: Request, res: Response) => {
   const [order] = await db
     .update(ordersTable)
     .set({ status })
-    .where(eq(ordersTable.whopCheckoutId, checkoutConfigurationId))
+    .where(and(eq(ordersTable.whopCheckoutId, checkoutConfigurationId), eq(ordersTable.status, "pending")))
     .returning({ id: ordersTable.id });
+
+  if (order && status === "paid") {
+    await submitPaidUzhubOrder(order.id);
+  }
 
   res.json({
     received: true,
