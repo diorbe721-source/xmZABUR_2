@@ -4,6 +4,7 @@ import { packagesTable, gamesTable, ordersTable } from "@workspace/db";
 import { eq } from "drizzle-orm";
 import { getWhopClient } from "../lib/whopClient";
 import { CreateCheckoutBody } from "@workspace/api-zod";
+import { validateUzhubPlayer } from "../lib/uzpinhubClient";
 
 const router = Router();
 
@@ -74,6 +75,28 @@ router.post("/checkout", async (req, res) => {
   if (!game) {
     res.status(404).json({ error: "Game not found" });
     return;
+  }
+
+  const isMlbb = /mobile.?legends|mlbb/i.test(`${game.slug} ${game.name}`);
+  if (isMlbb) {
+    if (!process.env.UZPINHUB_API_KEY) {
+      res.status(503).json({ error: "UZPINHUB is not configured yet" });
+      return;
+    }
+    if (!game.uzpinhubGameId || !pkg.uzpinhubProductId) {
+      res.status(503).json({ error: "UZPINHUB game/product mapping is missing; checkout is temporarily disabled" });
+      return;
+    }
+    if (!serverOrZone?.trim()) {
+      res.status(400).json({ error: "MLBB Zone/Server ID is required" });
+      return;
+    }
+    try {
+      await validateUzhubPlayer(game.uzpinhubGameId, playerId.trim(), serverOrZone.trim());
+    } catch {
+      res.status(400).json({ error: "Player ID could not be validated. Check the ID and Zone/Server ID, then try again." });
+      return;
+    }
   }
 
   const price = parseFloat(pkg.price);
