@@ -2,7 +2,7 @@ import { Router, type Request, type Response } from "express";
 import { createHmac, timingSafeEqual } from "node:crypto";
 import { db } from "@workspace/db";
 import { ordersTable } from "@workspace/db";
-import { eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 
 const router = Router();
 const MAX_TIMESTAMP_DRIFT_SECONDS = 5 * 60;
@@ -72,17 +72,33 @@ router.post("/webhooks/whop", async (req: Request, res: Response) => {
     return;
   }
 
-  const [order] = await db
+  // Only pending orders can be moved by a webhook. A duplicate event,
+  // delayed failure, or out-of-order delivery must not undo an already paid,
+  // processing, or completed order. This conditional UPDATE is atomic.
+  const [updated] = await db
     .update(ordersTable)
     .set({ status })
-    .where(eq(ordersTable.whopCheckoutId, checkoutConfigurationId))
+    .where(and(
+      eq(ordersTable.whopCheckoutId, checkoutConfigurationId),
+      eq(ordersTable.status, "pending"),
+    ))
     .returning({ id: ordersTable.id });
+
+  // Do not claim a payment was newly applied when the webhook was replayed.
+  // Refunds for fulfilled/paid orders require a separate reconciliation flow.
+  const [existing] = updated
+    ? [null]
+    : await db.select({ id: ordersTable.id, status: ordersTable.status })
+        .from(ordersTable)
+        .where(eq(ordersTable.whopCheckoutId, checkoutConfigurationId))
+        .limit(1);
 
   res.json({
     received: true,
     eventId: event.id ?? webhookId,
-    orderId: order?.id ?? null,
-    status,
+    orderId: updated?.id ?? existing?.id ?? null,
+    status: updated ? status : (existing?.status ?? null),
+    applied: Boolean(updated),
   });
 });
 
